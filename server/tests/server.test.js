@@ -189,3 +189,60 @@ describe('DELETE /todos/:id', () => {
     });
 
 });
+
+describe('DELETE /todos/:id', () => {
+
+    it('should update a todo item', (done) => {
+        let id = createdTodos[0]._id;
+        let text = 'New todo text';
+
+        request(app)
+            .patch(`/todos/${id}`)
+            .send({ text })
+            .expect(204)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                Todo.findById(id).then(doc => {
+                    expect(doc.text).to.be(text);
+                    done();
+                  }).catch((err) => done(err));
+            });
+    });
+
+    it('should return 404 when todo not found', (done) => {
+        let id = new ObjectID();
+        let body = { text: 'test me' };
+
+        request(app)
+            .patch(`/todos/${id}`)
+            .send(body)
+            .expect(404)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                done();
+            });
+    });
+
+    it("should return 404 when todo id is invalid", done => {
+        let id = "abc";
+        let body = { text: "test me" };
+
+        request(app)
+          .patch(`/todos/${id}`, body)
+          .expect(404)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            done();
+          });
+    });
+
+});
