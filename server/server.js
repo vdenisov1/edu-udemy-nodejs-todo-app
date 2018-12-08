@@ -13,7 +13,7 @@ app.post('/todos', (req, res) => {
     let todoItem = new Todo(req.body);
 
     todoItem.save().then((doc) => {
-        res.status(204);
+        res.status(200);
         res.send(doc);
     }, (err) => { 
         res.status(400);
