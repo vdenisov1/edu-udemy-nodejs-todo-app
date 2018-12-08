@@ -140,3 +140,52 @@ describe('GET /todos/:id', () => {
     });
 
 });
+
+describe('DELETE /todos/:id', () => {
+
+    it('should delete a todo item', (done) => {
+        let id = createdTodos[0]._id;
+
+        request(app)
+            .delete(`/todos/${id}`)
+            .expect(204)
+            .end((err, res) => {
+                if(err) {
+                    return done(err);
+                }
+
+                done();
+            });
+    });
+
+    it('should return 404 when todo not found', (done) => {
+        let id = new ObjectID();
+
+        request(app)
+            .delete(`/todos/${id}`)
+            .expect(404)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                done();
+            });
+    });
+
+    it("should return 404 when todo id is invalid", done => {
+      let id = "abc";
+
+      request(app)
+        .delete(`/todos/${id}`)
+        .expect(404)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          done();
+        });
+    });
+
+});
