@@ -5,7 +5,7 @@ const { app } = require('../server');
 const { Todo } = require('../models/Todo');
 
 beforeEach((done) => {
-    Todo.remove({}).then(() => done());
+    Todo.deleteMany({}).then(() => done());
 });
 
 describe('POST /todos', () => {
@@ -54,6 +54,30 @@ describe('POST /todos', () => {
                     }).catch((err) => done(err));
                 });
             });
+    });
+
+});
+
+describe('GET /todos', () => {
+
+    it('should get a list of todos', (done) => {
+        let text = 'Make this test pass';
+        let todoItem = new Todo({ text });
+        
+        todoItem.save().then((doc) => {
+            request(app)
+                .get('/todos')
+                .expect(200)
+                .end((err, res) => {
+                    if(err) {
+                        return done(err);
+                    }
+
+                    expect(res.body.todos.length).to.be(1);
+                    expect(res.body.todos[0].text).to.be(text);
+                    done();
+                });
+        }).catch((err) => done(err));
     });
 
 });

@@ -10,6 +10,7 @@ const app = express();
 app.use(bodyParser.json());
 
 app.post('/todos', (req, res) => {
+    
     let todoItem = new Todo(req.body);
 
     todoItem.save().then((doc) => {
@@ -19,6 +20,19 @@ app.post('/todos', (req, res) => {
         res.status(400);
         res.send(err);
     });
+
+});
+
+app.get('/todos', (req, res) => {
+    
+    Todo.find().then((todos) => {
+        res.status(200);
+        res.send({ todos });
+    }, (err) => {
+        res.status(400);
+        res.send(err);
+    });
+
 });
 
 // app.get('/todos', (req, res) => {
