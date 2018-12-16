@@ -332,7 +332,7 @@ describe('POST /users/login', () => {
                 }
 
                 User.findById(user._id).then((record) => {
-                    let token = record.tokens[record.tokens.length - 1];
+                    let token = record.tokens[0];
                     expect(token).to.have.property('access', 'auth');
                     expect(token.token).to.be(res.headers['x-auth']);
                     done();
@@ -350,6 +350,31 @@ describe('POST /users/login', () => {
             .expect((res) => {
                 expect(res.headers).to.not.have.property('x-auth');
             }).end(done);
+    });
+
+});
+
+describe('DELETE /users/me/token', () => {
+
+    it('should not have an auth token after logout', (done) => {
+        let user = createdUsers[0];
+        let authToken = user.tokens[0].token;
+
+        request(app)
+            .delete('/users/me/token')
+            .set('x-auth', authToken)
+            .send()
+            .expect(200)
+            .end((err, res) => {
+                if(err){
+                    return done(err);
+                }
+
+                User.findById(user._id).then((user) => {
+                    expect(user.tokens.length).to.be(0);
+                    done();
+                }).catch((err) => done(err));
+            });
     });
 
 });
