@@ -5,7 +5,7 @@ if(env === 'development'){
     process.env.PORT = 3000;
     process.env.MONGODB_URI = "mongodb://localhost:27017/TodoApp";
 }else if(env === 'test'){
-    process.env.PORT = 3000;
+    process.env.PORT = 3001;
     process.env.MONGODB_URI = "mongodb://localhost:27017/TodoAppTest";
 }
 
@@ -25,9 +25,11 @@ const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
-app.post('/todos', (req, res) => {
-    
-    let todoItem = new Todo(req.body);
+app.post('/todos', authenticate, (req, res) => {
+    let todoItem = new Todo({
+        text: req.body.text,
+        _creator: req.user._id
+    });
 
     todoItem.save().then((doc) => {
         res.status(200);
@@ -39,68 +41,66 @@ app.post('/todos', (req, res) => {
 
 });
 
-app.get('/todos', (req, res) => {
-    
-    Todo.find().then((items) => {
-        res.status(200);
-        res.send({ items });
-    }, (err) => {
-        res.status(400);
-        res.send(err);
-    });
+app.get('/todos', authenticate, (req, res) => {
+    Todo.find({ _creator: req.user._id })
+        .then((items) => {
+            res.status(200);
+            res.send({ items });
+        }, (err) => {
+            res.status(400);
+            res.send(err);
+        });
 
 });
 
-app.get('/todos/:id', (req, res) => {
-    let id = req.params.id;
+app.get('/todos/:id', authenticate, (req, res) => {
 
-    if(!ObjectID.isValid(id)) {
+    if (!ObjectID.isValid(req.params.id)) {
         return res.status(404).send();
     }
 
-    Todo.findById(req.params.id).then((todo) => {
+    Todo.findOne({ _id: req.params.id, _creator: req.user._id}).then((todo) => {
         if(!todo) {
             return res.status(404).send();
         }
+
         res.status(200).send(todo);
-    }, (err) => {
+    }).catch((err) => {
         res.status(400).send();
     });
 });
 
-app.delete('/todos/:id', (req, res) => {
-    let id = req.params.id;
+app.delete('/todos/:id', authenticate, (req, res) => {
 
-    if(!ObjectID.isValid(id)){
+    if (!ObjectID.isValid(req.params.id)){
         return res.status(404).send();
     }
 
-    Todo.findByIdAndDelete(id).then((doc) => {
+    Todo.findOneAndDelete({ _id: req.params.id, _creator: req.user._id }).then((doc) => {
         if(!doc) {
             return res.status(404).send();
         }
 
         res.status(204).send();
-    }, (err) => {
+    }).catch((err) => {
         res.status(400).send();
     });
 });
 
-app.patch('/todos/:id', (req, res) => {
-    let id = req.params.id;
+app.patch('/todos/:id', authenticate, (req, res) => {
     let todo = _.pick(req.body, ['text','completed']);
 
-    if(!ObjectID.isValid(id)){
+    if(!ObjectID.isValid(req.params.id)){
         return res.status(404).send();
     }
 
-    Todo.findByIdAndUpdate(id, todo).then((doc) => {
+    Todo.findOneAndUpdate({ _id: req.params.id, _creator: req.user._id }, todo).then((doc) => {
         if(!doc) {
             return res.status(404).send();
         }
 
         res.status(204).send();
-    }, (err) => {
+    }).catch((err) => {
         res.status(400).send();
     });
 });
