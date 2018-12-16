@@ -28,7 +28,7 @@ const createdUsers = [
         tokens: [
             {
                 access: 'auth',
-                token: jwt.sign({ _id: userOneId, access: 'auth' }, 'abc123').toString()
+                token: jwt.sign({ _id: userOneId, access: 'auth' }, process.env.JWT_SECRET).toString()
             }
         ]
     },
@@ -39,7 +39,7 @@ const createdUsers = [
         tokens: [
             {
                 access: 'auth',
-                token: jwt.sign({ _id: userTwoId, access: 'auth' }, 'abc123').toString()
+                token: jwt.sign({ _id: userTwoId, access: 'auth' }, process.env.JWT_SECRET).toString()
             }
         ]
     }
@@ -50,7 +50,7 @@ const populateTodos = done => {
     .then(() => {
       return Todo.insertMany(createdTodos);
     })
-    .then(() => done());
+      .then(() => done()).catch((err) => done(err));
 };
 
 const populateUsers = done => {
@@ -62,7 +62,7 @@ const populateUsers = done => {
         }
 
         return Promise.all(promises);
-    }).then(() => done());
+    }).then(() => done()).catch((err) => done(err));
 };
 
 module.exports = { createdTodos, populateTodos, populateUsers, createdUsers };
