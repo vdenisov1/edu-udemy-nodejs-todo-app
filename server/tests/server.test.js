@@ -313,3 +313,43 @@ describe('POST /users', () => {
     });
 
 });
+
+describe('POST /users/login', () => {
+
+    it('should login user and return auth token', (done) => {
+        let user = createdUsers[1];
+
+        request(app)
+            .post('/users/login')
+            .send(user)
+            .expect(200)
+            .expect((res) => {
+                expect(res.headers).to.have.property('x-auth');
+            })
+            .end((err, res) => {
+                if(err) {
+                    return done(err);
+                }
+
+                User.findById(user._id).then((record) => {
+                    let token = record.tokens[record.tokens.length - 1];
+                    expect(token).to.have.property('access', 'auth');
+                    expect(token.token).to.be(res.headers['x-auth']);
+                    done();
+                }).catch((e) => done(e));
+            });
+
+    });
+
+    it('should return a 401 for incorrect login data', (done) => {
+        let user = createdUsers[0];
+        request(app)
+            .post('/users/login')
+            .send({ email: user.email, password: user.password + 'abc' })
+            .expect(401)
+            .expect((res) => {
+                expect(res.headers).to.not.have.property('x-auth');
+            }).end(done);
+    });
+
+});
